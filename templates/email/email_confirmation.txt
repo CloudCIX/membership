@@ -1,0 +1,18 @@
+{% load i18n %}
+{% language user.language.languageCode %}
+	Dear {{ user.first_name }} {{ user.surname }},
+	{% blocktrans %}
+	CloudCIX has received a request to create a user for member {{ user.member.name }}, {{ user.address.full_address }} with {{ user.email }} as the username.
+
+	Please confirm agreement to this instruction by clicking on the link below and following the on screen instructions.
+	{% endblocktrans %}
+
+	http{% if request.is_secure %}s{% endif %}://{{ confirmation_url }}
+
+	{% blocktrans %}
+	If you do not wish for this user to be created, you need to take no action at this time.
+
+	If you are afraid that this is a phishing attack, please call us on our landline which can be found on our website at www.cloudcix.com.
+
+	{% endblocktrans %}
+{% endlanguage %}

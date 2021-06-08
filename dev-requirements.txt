@@ -1,0 +1,2 @@
+# Libs specific to testing the membership application
+pyotp<=2.3.0

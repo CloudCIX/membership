@@ -1,0 +1,5 @@
+# Libs specific to the membership application
+ldap3
+minio<7.0.0
+pytz
+pyotp<=2.3.0

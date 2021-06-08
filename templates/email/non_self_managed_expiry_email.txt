@@ -1,0 +1,18 @@
+Dear {{ admin.first_name }} {{ admin.surname }},
+
+You are receiving this email because {{ member.name }} manages other Members where some Users will soon expire.
+{% for user in users %}
+      {{ user.member.name }}: {{ user.first_name }} {{ user.surname }} - {{ user.email }}
+{% endfor %}
+Once an account has expired, a User will not be able to use any CloudCIX service, and they will not receive any notifications from CloudCIX.
+In order to update the User please:
+  Log into the CloudCIX portal
+  Click My Partners from the side bar
+  Click Linked Members
+  Click on Users from the Member's dropdown menu
+  Go to Expiry Date and set for a date in the future
+  Click Update in the top right hand corner
+  The User is now successfully updated and no further action is required
+
+Please do not hesitate to contact us if you have any difficulty or questions. Our contact details can be found at https://www.cloudcix.com/#/support
+noc@cix.ie

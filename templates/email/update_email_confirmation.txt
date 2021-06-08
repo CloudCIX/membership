@@ -1,0 +1,17 @@
+{% load i18n %}
+{% language user.language.languageCode %}
+	Dear {{ user.first_name }} {{ user.surname }},
+	{% blocktrans %}
+	CloudCIX has received a request to change your username from {{ current_email }} to {{ user.email }} in member {{ user.member.name }}, {{ user.address.full_address }}.
+
+	Please confirm agreement to this instruction by clicking on the link below and following the on screen instructions.
+	{% endblocktrans %}
+
+	http{% if request.is_secure %}s{% endif %}://{{ confirmation_url }}
+
+	{% blocktrans %}
+
+	If you are afraid that this is a phishing attack, please call us on our landline which can be found on our website at www.cloudcix.com.
+
+	{% endblocktrans %}
+{% endlanguage %}

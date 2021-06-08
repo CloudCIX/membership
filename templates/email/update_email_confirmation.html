@@ -1,0 +1,9 @@
+<p>Dear {{ user.first_name }} {{ user.surname }}, </p>
+
+CloudCIX has received a request to change your username from {{ current_email }} to {{ user.email }} in member {{ user.member.name }}, {{ user.address.full_address }}.</br>
+
+Please confirm agreement to this instruction by clicking on the link below and following the on screen instructions. </br></br>
+
+<a href="http{% if request.is_secure %}s{% endif %}://{{ confirmation_url }}">{{ confirmation_url }}</a> </br></br>
+
+If you are afraid that this is a phishing attack, please call us on our landline which can be found on our website at www.cloudcix.com.</br>
