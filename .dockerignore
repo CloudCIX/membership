@@ -1,0 +1,13 @@
+# Don't need tests in the Docker container, when running tests we replace the container's application with the local one
+tests
+# We also will ignore the following to bring container size down
+.git
+.gitignore
+.gitlab
+.gitlab-ci.yml
+configure_test.sh
+Dangerfile
+docker-compose.yml
+.dockerignore
+CHANGELOG.md
+README.md

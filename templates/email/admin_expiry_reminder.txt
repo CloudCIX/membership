@@ -1,0 +1,21 @@
+Dear {{ admin.first_name }} {{ admin.surname }},
+
+As an Administrator of {{ member.name }}, please be aware that the following User accounts will expire in the next 30 days:
+
+{% for user in users %}
+    {{ user.first_name }} {{ user.surname }} - {{ user.email }}
+{% endfor %}
+
+Once an account has expired, a User will not be able to use any CloudCIX service, and they will not receive any notifications from CloudCIX.
+
+1. Log into the CloudCIX portal
+2. Click My Membership from the side bar
+3. Click Users
+4. Click Edit on the User/Users that need to be updated
+5. Go to Expiry Date and set for a date in the future
+6. Click Update in the top right hand corner
+7. The User is nto successfully updated and no further action is required
+
+Please do not hesitate to contact us if you have any difficulty or questions. Our contact details can be found at https://www.cloudcix.com/#/support
+
+noc@cix.ie
