@@ -3,6 +3,8 @@ from .address import *
 from .address_link import *
 from .app_settings import *
 from .auth import *
+from .cloud_bill import *
+from .cloud_budget import *
 from .country import *
 from .currency import *
 from .department import *

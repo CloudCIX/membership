@@ -48,6 +48,20 @@ urlpatterns = [
         name='auth_resource',
     ),
 
+    # CloudBill
+    path(
+        'cloud_bill/<int:address_id>/<int:target_address_id>/',
+        views.CloudBillResource.as_view(),
+        name='cloud_bill_resource',
+    ),
+
+    # Cloud Budget
+    path(
+        'cloud_budget/<int:address_id>/',
+        views.CloudBudgetResource.as_view(),
+        name='cloud_budget_resource',
+    ),
+
     # Country
     path(
         'country/',

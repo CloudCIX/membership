@@ -58,19 +58,21 @@ class AddressCollection(APIView):
         order = controller.cleaned_data['order']
         with tracer.start_span('get_objects', child_of=request.span) as span:
             try:
-                with tracer.start_span('get_linked_address_ids', child_of=span):
-                    # Get the addresses that are linked to the User's for listing
-                    linked_address = set(AddressLink.objects.filter(
-                        address_id=request.user.address['id'],
-                    ).values_list(
-                        'contra_address_id',
-                        flat=True,
-                    ))
-                    if kw.get('id__in', False):
-                        id_set = {int(i) for i in kw['id__in']}
-                        kw['id__in'] = id_set & linked_address
-                    else:
-                        kw['id__in'] = linked_address
+                # User 1 can list all addresses
+                if request.user.id != 1:
+                    with tracer.start_span('get_linked_address_ids', child_of=span):
+                        # Get the addresses that are linked to the User's for listing
+                        linked_address = set(AddressLink.objects.filter(
+                            address_id=request.user.address['id'],
+                        ).values_list(
+                            'contra_address_id',
+                            flat=True,
+                        ))
+                        if kw.get('id__in', False):
+                            id_set = {int(i) for i in kw['id__in']}
+                            kw['id__in'] = id_set & linked_address
+                        else:
+                            kw['id__in'] = linked_address
 
                 with tracer.start_span('checking_search_filters', child_of=span):
                     # If the User is filtering by the Address Link table, we want to make sure they only filter on
@@ -168,6 +170,15 @@ class AddressCollection(APIView):
             # Serialize the link
             controller.instance.link = link
             controller.instance.linked = True
+
+        # Link the new address to the other addresses in it's member
+        with tracer.start_span('creating_member_address_links', child_of=request.span):
+            address_ids = Address.objects.filter(member=controller.instance.member).exclude(
+                pk__in=[controller.instance.pk, request.user.address['id']],
+            ).values_list('id', flat=True)
+            for a in address_ids:
+                AddressLink.objects.create(address_id=a, contra_address=controller.instance)
+                AddressLink.objects.create(address=controller.instance, contra_address_id=a)
 
         # Send a metric to indicate an Address record has been created
         prepare_metrics(lambda pk: Metric('address_create', pk, {}), pk=controller.instance.pk)
@@ -342,7 +353,7 @@ class VerboseAddressCollection(APIView):
                     # Get the list of Address objects
                     objs = Address.objects.prefetch_related(Prefetch(
                         'address_link',
-                        AddressLink.objects.filter(address_id=address_id),
+                        AddressLink.objects.filter(address_id=address_id, deleted__isnull=True),
                         to_attr='link',
                     )).filter(
                         address_link__address_id=address_id,

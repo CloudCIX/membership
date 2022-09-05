@@ -63,7 +63,7 @@ membership_user_create_124 = (
 membership_user_create_125 = 'The "department_id" parameter is invalid. "department_id" must be an integer.'
 membership_user_create_126 = (
     'The "department_id" parameter is invalid. "department_id" must belong to a valid Department in the specified '
-    'Address\' Member.'
+    "Address' Member."
 )
 membership_user_create_127 = 'The "job_title" parameter is invalid. "job_title" cannot be longer than 100 characters.'
 membership_user_create_128 = (
@@ -117,11 +117,11 @@ membership_user_read_202 = (
     ' their account is private.'
 )
 membership_user_read_203 = (
-    'You do not have permission to execute this method. Your Address is not linked to the specified User\'s Address, '
+    "You do not have permission to execute this method. Your Address is not linked to the specified User's Address, "
     'and the specified User is not in your Member.'
 )
 membership_user_read_204 = (
-    'You do not have permission to execute this method. You Address is not linked to the specified User\'s Address, '
+    "You do not have permission to execute this method. You Address is not linked to the specified User's Address, "
     'and you are not a global User.'
 )
 
@@ -182,7 +182,7 @@ membership_user_update_124 = (
 membership_user_update_125 = 'The "department_id" parameter is invalid. "department_id" must be an integer.'
 membership_user_update_126 = (
     'The "department_id" parameter is invalid. "department_id" must belong to a valid Department in the specified '
-    'Address\' Member.'
+    "Address' Member."
 )
 membership_user_update_127 = 'The "job_title" parameter is invalid. "job_title" cannot be longer than 100 characters.'
 membership_user_update_128 = (
@@ -237,7 +237,7 @@ membership_user_update_145 = 'The "robot" parameter is invalid. A robot User alr
 membership_user_update_146 = 'The "otp" parameter is invalid. OTP cannot be turned on for robot or API users.'
 
 membership_user_update_201 = (
-    'You do not have permission to execute this method. Only Member 1 administrator\'s can change the roles of a User.'
+    "You do not have permission to execute this method. Only Member 1 administrator's can change the roles of a User."
 )
 membership_user_update_202 = 'You do not have permission to execute this method. Your Member must be self-managed.'
 membership_user_update_203 = (

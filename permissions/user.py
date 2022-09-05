@@ -23,7 +23,7 @@ class Permissions:
         - The requestng User is an administrator
         """
         # Superuser User Allowance
-        if request.user.is_super:  # pragma: no cover
+        if request.user.id == 1:  # pragma: no cover
             return None
 
         # The requesting User's Member is self-managed
@@ -54,7 +54,7 @@ class Permissions:
         # The view only checks permissions if this is untrue
 
         # Superuser User Allowance
-        if request.user.is_super:  # pragma: no cover
+        if request.user.id == 1:  # pragma: no cover
             return None
 
         # If the requesting User's Address is linked to the specified User's Address in a Partner Member and they are
@@ -100,7 +100,7 @@ class Permissions:
         - The requesting User is a global User changing their Address or an administrator changing a User's Address
         """
         # Superuser User Allowance
-        if request.user.is_super:  # pragma: no cover
+        if request.user.id == 1:  # pragma: no cover
             return None
 
         if current_administrator != new_administrator or current_robot != new_robot:

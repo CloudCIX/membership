@@ -2,6 +2,8 @@ from .address import AddressCollection, AddressResource, VerboseAddressCollectio
 from .address_link import AddressLinkResource
 from .app_settings import AppSettingsCollection, AppSettingsResource
 from .auth import AuthResource
+from .cloud_bill import CloudBillResource
+from .cloud_budget import CloudBudgetResource
 from .country import CountryCollection, CountryResource
 from .currency import CurrencyCollection, CurrencyResource
 from .department import DepartmentCollection, DepartmentResource
@@ -33,6 +35,12 @@ __all__ = [
 
     # Auth
     'AuthResource',
+
+    # CloudBill
+    'CloudBillResource',
+
+    # Cloud Budget
+    'CloudBudgetResource',
 
     # Country
     'CountryCollection',

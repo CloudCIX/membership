@@ -17,7 +17,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from pytz import timezone as get_timezone, UnknownTimeZoneError
 # local
-from membership.utils import get_minio_client, MinioException
+from membership.utils import get_minio_client, MinioError
 from membership.models import (
     Address,
     AddressLink,
@@ -226,7 +226,7 @@ class UserCreateController(ControllerBase):
 
     def validate_global_user(self, global_user: Optional[bool]) -> Optional[str]:
         """
-        description: A flag stating whether the User can act as a global User
+        description: A flag stating whether the User can act as a global User. By default an Administrator will be one.
         type: boolean
         required: false
         """
@@ -252,7 +252,7 @@ class UserCreateController(ControllerBase):
 
     def validate_is_private(self, is_private: Optional[bool]) -> Optional[str]:
         """
-        description: A flag stating whether the User can act as a is_private User
+        description: A flag stating whether the User can act as an is_private User
         type: boolean
         required: false
         """
@@ -498,9 +498,9 @@ class UserCreateController(ControllerBase):
                 return 'membership_user_create_136'
             try:
                 minio = get_minio_client()
-            except MinioException:
+            except MinioError:
                 logger.error('Settings for MinIO are not configured', exc_info=True)
-                # MinIO not configured, won't fail entire request but am logging reason
+                # MinIO not configured, won't fail entire request but log reason
                 return
             # Create the container if it doesn't already exist
             try:
@@ -564,6 +564,7 @@ class UserUpdateController(ControllerBase):
         model = User
         validation_order = (
             'address_id',
+            'administrator',
             'first_name',
             'surname',
             'email',
@@ -585,7 +586,6 @@ class UserUpdateController(ControllerBase):
             'login',
             'otp',
             'first_otp',
-            'administrator',
             'robot',
         )
 
@@ -622,6 +622,24 @@ class UserUpdateController(ControllerBase):
             return 'membership_user_update_104'
         # Store the address
         self.cleaned_data['address'] = address
+        return None
+
+    def validate_administrator(self, administrator: Optional[bool]) -> Optional[str]:
+        """
+        description: A flag stating if User is an Administrator.
+        type: boolean
+        required: false
+        """
+        # administrator is optional
+        if administrator is None:
+            self.cleaned_data['administrator'] = self._instance.administrator
+            return None
+
+        # If it was sent, ensure it's a boolean
+        if not isinstance(administrator, bool):
+            return 'membership_user_update_142'
+
+        self.cleaned_data['administrator'] = administrator
         return None
 
     def validate_first_name(self, first_name: Optional[str]) -> Optional[str]:
@@ -706,10 +724,13 @@ class UserUpdateController(ControllerBase):
 
     def validate_global_user(self, global_user: Optional[bool]) -> Optional[str]:
         """
-        description: A flag stating whether the User can act as a global User. Only an admin can update this.
+        description: A flag stating whether the User can act as a global User. By default an Administrator will be one.
         type: boolean
         required: false
         """
+        if self.cleaned_data.get('administrator', self._instance.administrator):
+            self.cleaned_data['global_user'] = True
+            return None
         if not self.request.user.administrator or global_user is None:
             global_user = self._instance.global_user
         if not isinstance(global_user, bool):
@@ -734,7 +755,7 @@ class UserUpdateController(ControllerBase):
 
     def validate_is_private(self, is_private: Optional[bool]) -> Optional[str]:
         """
-        description: A flag stating whether the User can act as a is_private User.
+        description: A flag stating whether the User can act as an is_private User.
         type: boolean
         required: false
         """
@@ -979,9 +1000,9 @@ class UserUpdateController(ControllerBase):
 
             try:
                 minio = get_minio_client()
-            except MinioException:
+            except MinioError:
                 logger.error('Settings for MinIO are not configured', exc_info=True)
-                # MinIO not configured, won't fail entire request but am logging reason
+                # MinIO not configured, won't fail entire request but log reason
                 return
             # Create the container if it doesn't already exist
             try:
@@ -1045,7 +1066,7 @@ class UserUpdateController(ControllerBase):
         """
         if login is None:
             login = False
-        if self.request.user.is_super and isinstance(login, bool) and login:
+        if self.request.user.id == 1 and isinstance(login, bool) and login:
             self.cleaned_data['last_login'] = datetime.utcnow()
 
     def _delete_old_image(self, image: Optional[str]):  # pragma: no cover
@@ -1056,9 +1077,9 @@ class UserUpdateController(ControllerBase):
             return
         try:
             minio = get_minio_client()
-        except MinioException:
+        except MinioError:
             logger.error('Settings for MinIO are not configured', exc_info=True)
-            # MinIO not configured, won't fail entire request but am logging reason
+            # MinIO not configured, won't fail entire request but a logging reason
             return
         # The image is a url with the filename being at the end
         filename = image.split('/')[-1]
@@ -1085,7 +1106,7 @@ class UserUpdateController(ControllerBase):
         """
         description: |
             A number that will be used in the Two Factor Authentication (2fa) creation.
-            Must be a six digit number between 100000 and 999999 inclusive.
+            Must be a six-digit number between 100000 and 999999 inclusive.
         type: string
         required: false
         """
@@ -1106,24 +1127,6 @@ class UserUpdateController(ControllerBase):
         else:
             return 'membership_user_update_141'
         self.cleaned_data['first_otp'] = first_otp
-        return None
-
-    def validate_administrator(self, administrator: Optional[bool]) -> Optional[str]:
-        """
-        description: A flag stating if User is an Administrator
-        type: boolean
-        required: false
-        """
-        # administrator is optional
-        if administrator is None:
-            self.cleaned_data['administrator'] = self._instance.administrator
-            return None
-
-        # If it was sent, ensure it's a boolean
-        if not isinstance(administrator, bool):
-            return 'membership_user_update_142'
-
-        self.cleaned_data['administrator'] = administrator
         return None
 
     def validate_robot(self, robot: Optional[bool]) -> Optional[str]:

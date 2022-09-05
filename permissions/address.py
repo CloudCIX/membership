@@ -66,7 +66,7 @@ class Permissions:
             in a non self-managed partner Member
         - There is a link between the Address being updated and the requesting User's Address
         """
-        if request.user.is_super:  # pragma: no cover
+        if request.user.id == 1:  # pragma: no cover
             return None
 
         if current_cloud_region != new_cloud_region:

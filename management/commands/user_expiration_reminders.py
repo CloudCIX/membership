@@ -124,7 +124,7 @@ class Command(BaseCommand):
                 ]
                 emails.append(self.create_email(
                     user=admin,
-                    subject=f'{settings.ORGANIZATION} Membership User is about to expire!',
+                    subject=f'{settings.ORGANIZATION_URL} Membership User is about to expire!',
                     body_txt=txt,
                     body_html=html,
                 ))
@@ -192,7 +192,9 @@ class Command(BaseCommand):
 
                 emails.append(self.create_email(
                     user=admin,
-                    subject=f'{settings.ORGANIZATION} Membership Users in Non-Self-Managed Partners will soon expire',
+                    subject=(
+                        f'{settings.ORGANIZATION_URL} Membership Users in Non-Self-Managed Partners will soon expire'
+                    ),
                     body_txt=txt,
                     body_html=html,
                 ))
@@ -217,7 +219,6 @@ class Command(BaseCommand):
             to=to,
             subject=subject,
             body=body_txt,
-            headers={'Reply-To': f'{settings.REPLY_TO}'},
         )
         email.attach_alternative(body_html, 'text/html')
         return email

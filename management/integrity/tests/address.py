@@ -50,7 +50,7 @@ def address_has_member(file=None):
 @register
 def address_links_have_reciprocals(file=None):
     """
-    For every Address Link check that a Address Link going in the opposite direction exists
+    For every Address Link check that an Address Link going in the opposite direction exists
     """
     results = dict()
     membership_db = connections['membership']

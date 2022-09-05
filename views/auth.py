@@ -3,9 +3,7 @@ Handling for User authentication and Token management
 """
 
 # stdlib
-import crypt
 import datetime
-import hmac
 # libs
 import jwt
 from cloudcix.api.otp import OTP
@@ -18,11 +16,13 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 # local
 from membership.models import User
+from membership.utils import ldap_auth
 
 
 __all__ = [
     'AuthResource',
 ]
+
 with open(settings.PRIVATE_KEY_FILE) as f:
     PRIVATE_KEY = f.read()
 with open(settings.PUBLIC_KEY_FILE) as f:
@@ -81,29 +81,15 @@ class AuthResource(APIView):
         """
         # Check that the necessary information is provided
         tracer = settings.TRACER
-        conn = settings.LDAP_CONN
         data = request.data
 
         with tracer.start_span('checking_for_required_fields', child_of=request.span):
             if 'email' not in data or 'password' not in data:
                 return Http400(error_code='membership_token_create_001')
 
-        with tracer.start_span('searching_for_user', child_of=request.span):
-            success = conn.search(
-                search_base=settings.LDAP_DOMAIN_CONTROLLER,
-                search_filter=f'(&(uid={data["email"]}))',
-                attributes=['userPassword'],
-            )
-            if not success:
-                return Http400(error_code='membership_token_create_002')
-
-        # Check the user's crypted password against the sent password
-        with tracer.start_span('checking_user_password', child_of=request.span):
-            crypted_password = conn.response[0]['attributes']['userPassword'][0]
-            if type(crypted_password) == bytes:  # pragma: no cover
-                # Uncovered because I'm not 100% sure when this happens but I've seen it happen so I know it does
-                crypted_password = crypted_password.decode()
-            if not hmac.compare_digest(crypted_password, crypt.crypt(data['password'], crypted_password)):
+        with tracer.start_span('verifying_credentials_in_ldap', child_of=request.span):
+            valid = ldap_auth(data['email'], data['password'])
+            if not valid:
                 return Http400(error_code='membership_token_create_002')
 
         # At this point we know that the supplied details are valid.
@@ -128,38 +114,42 @@ class AuthResource(APIView):
                 return Http400(error_code='membership_token_create_003')
 
         # check if a user has otp, if they dont return an error which will then use the form
-        with tracer.start_span('checking_otp', child_of=request.span):
+        with tracer.start_span('checking_otp', child_of=request.span) as span:
             if user['otp'] and user['first_otp'] is not None:
                 if 'first_otp' not in data:
                     return Http400(error_code='membership_token_create_004')
-                else:
-                    if data['first_otp'] is None:
+
+                try:
+                    if int(data['first_otp']) != user['first_otp']:
                         return Http400(error_code='membership_token_create_005')
-                    else:
-                        if data['first_otp'] != user['first_otp']:
-                            return Http400(error_code='membership_token_create_005')
-                        else:
-                            # get user and update first otp of user to none
-                            u = User.objects.get(email__iexact=data['email'], member__api_key=data['api_key'])
-                            u.first_otp = None
-                            u.save()
+                except(ValueError, TypeError):
+                    return Http400(error_code='membership_token_create_006')
+
+                # get user and update first otp of user to none
+                u = User.objects.get(email__iexact=data['email'], member__api_key=data['api_key'])
+                u.first_otp = None
+                u.save()
+
             elif user['otp'] and user['first_otp'] is None:
                 # User needs to send the six pin otp here.
                 if 'otp' not in data:
-                    return Http400(error_code='membership_token_create_006')
-                else:
-                    if data['otp'] is None:
-                        return Http400(error_code='membership_token_create_007')
-                    else:
-                        request_data = {
-                            'otp': data['otp'],
-                        }
-                        response = OTP.otp_auth.create(
-                            data=request_data,
-                            email=data['email'],
-                        )
-                        if response.status_code != 200:
-                            return Http400(error_code='membership_token_create_007')
+                    return Http400(error_code='membership_token_create_007')
+
+                try:
+                    int(data['otp'])
+                except(ValueError, TypeError):
+                    return Http400(error_code='membership_token_create_008')
+
+                request_data = {
+                    'otp': data['otp'],
+                }
+                response = OTP.otp_auth.create(
+                    data=request_data,
+                    email=data['email'],
+                    span=span,
+                )
+                if response.status_code != 200:
+                    return Http400(error_code='membership_token_create_008')
         # Create a token and return it in the response
         # Token will contain the user id since there is a specific id for each user / member mapping
         with tracer.start_span('create_token', child_of=request.span):

@@ -1,6 +1,6 @@
 # stdlib
 from decimal import Decimal, InvalidOperation
-from typing import Optional
+from typing import Any, Dict, Optional
 # libs
 from cloudcix_rest.controllers import ControllerBase
 # local
@@ -25,14 +25,18 @@ class AddressLinkCreateController(ControllerBase):
         validation_order = (
             'credit_limit',
             'client',
-            'compute',
+            'cloud_customer',
             'customer',
+            'extra_reference1',
+            'extra_reference2',
+            'extra_reference3',
             'note',
             'reference',
             'service_centre',
             'supplier',
             'territory_id',
             'warrantor',
+            'extra',
         )
 
     def validate_credit_limit(self, credit_limit: Optional[str]) -> Optional[str]:
@@ -71,25 +75,25 @@ class AddressLinkCreateController(ControllerBase):
         self.cleaned_data['client'] = client
         return None
 
-    def validate_compute(self, compute: Optional[bool]) -> Optional[str]:
+    def validate_cloud_customer(self, cloud_customer: Optional[bool]) -> Optional[str]:
         """
         description: A flag stating if the Contra Address can build cloud resources using the Address's infrastructure
         type: boolean
         required: false
         """
-        # Compute is optional
-        if compute is None:
-            self.cleaned_data['compute'] = False
+        # cloud_customer is optional
+        if cloud_customer is None:
+            self.cleaned_data['cloud_customer'] = False
             return None
 
         # If it was sent, ensure it's a boolean
-        if not isinstance(compute, bool):
+        if not isinstance(cloud_customer, bool):
             return 'membership_address_link_create_107'
 
-        # Make sure the Address can offer compute services to the Contra Address
-        if compute and not self.request.user.address['cloud_region']:
+        # Make sure the Address can offer cloud_customer services to the Contra Address
+        if cloud_customer and not self.request.user.address['cloud_region']:
             return 'membership_address_link_create_108'
-        self.cleaned_data['compute'] = compute
+        self.cleaned_data['cloud_customer'] = cloud_customer
         return None
 
     def validate_customer(self, customer: Optional[bool]) -> Optional[str]:
@@ -106,6 +110,33 @@ class AddressLinkCreateController(ControllerBase):
         if not isinstance(customer, bool):
             return 'membership_address_link_create_109'
         self.cleaned_data['customer'] = customer
+        return None
+
+    def validate_extra_reference1(self, extra_reference1: Optional[str]) -> Optional[str]:
+        """
+        description: An extra bit of reference text about the AddressLink
+        type: string
+        required: false
+        """
+        self.cleaned_data['extra_reference1'] = str(extra_reference1).strip()
+        return None
+
+    def validate_extra_reference2(self, extra_reference2: Optional[str]) -> Optional[str]:
+        """
+        description: An extra bit of reference text about the AddressLink
+        type: string
+        required: false
+        """
+        self.cleaned_data['extra_reference2'] = str(extra_reference2).strip()
+        return None
+
+    def validate_extra_reference3(self, extra_reference3: Optional[str]) -> Optional[str]:
+        """
+        description: An extra bit of reference text about the AddressLink
+        type: string
+        required: false
+        """
+        self.cleaned_data['extra_reference3'] = str(extra_reference3).strip()
         return None
 
     def validate_note(self, note: Optional[str]) -> Optional[str]:
@@ -198,6 +229,21 @@ class AddressLinkCreateController(ControllerBase):
         self.cleaned_data['warrantor'] = warrantor
         return None
 
+    def validate_extra(self, extra: Optional[Dict[Any, Any]]) -> Optional[str]:
+        """
+        description: An extra key, value storage field for any extra information you wish to store on links
+        type: boolean
+        required: false
+        """
+        if extra is None:
+            self.cleaned_data['extra'] = {}
+            return None
+
+        if not isinstance(extra, dict):
+            return 'membership_address_link_create_113'
+        self.cleaned_data['extra'] = extra
+        return None
+
 
 class AddressLinkUpdateController(ControllerBase):
     """
@@ -211,14 +257,18 @@ class AddressLinkUpdateController(ControllerBase):
         validation_order = (
             'credit_limit',
             'client',
-            'compute',
+            'cloud_customer',
             'customer',
+            'extra_reference1',
+            'extra_reference2',
+            'extra_reference3',
             'note',
             'reference',
             'service_centre',
             'supplier',
             'territory_id',
             'warrantor',
+            'extra',
         )
 
     def validate_credit_limit(self, credit_limit: Optional[str]) -> Optional[str]:
@@ -256,24 +306,24 @@ class AddressLinkUpdateController(ControllerBase):
         self.cleaned_data['client'] = client
         return None
 
-    def validate_compute(self, compute: Optional[bool]) -> Optional[str]:
+    def validate_cloud_customer(self, cloud_customer: Optional[bool]) -> Optional[str]:
         """
         description: A flag stating if the Contra Address can build cloud resources using the Address's infrastructure
         type: boolean
         required: false
         """
-        # Compute is optional
-        if compute is None:
+        # cloud_customer is optional
+        if cloud_customer is None:
             return None
 
         # If it was sent, ensure it's a boolean
-        if not isinstance(compute, bool):
+        if not isinstance(cloud_customer, bool):
             return 'membership_address_link_update_107'
 
-        # Make sure the Address can offer compute services to the Contra Address
-        if compute and not self.request.user.address['cloud_region']:
+        # Make sure the Address can offer cloud_customer services to the Contra Address
+        if cloud_customer and not self.request.user.address['cloud_region']:
             return 'membership_address_link_update_108'
-        self.cleaned_data['compute'] = compute
+        self.cleaned_data['cloud_customer'] = cloud_customer
         return None
 
     def validate_customer(self, customer: Optional[bool]) -> Optional[str]:
@@ -289,6 +339,37 @@ class AddressLinkUpdateController(ControllerBase):
         if not isinstance(customer, bool):
             return 'membership_address_link_update_109'
         self.cleaned_data['customer'] = customer
+        return None
+
+    def validate_extra_reference1(self, extra_reference1: Optional[str]) -> Optional[str]:
+        """
+        description: An extra bit of reference text about the AddressLink
+        type: string
+        required: false
+        """
+        if bool(extra_reference1):
+            self.cleaned_data['extra_reference1'] = str(extra_reference1).strip()
+        return None
+
+    def validate_extra_reference2(self, extra_reference2: Optional[str]) -> Optional[str]:
+        """
+        description: An extra bit of reference text about the AddressLink
+        type: string
+        required: false
+        """
+        if bool(extra_reference2):
+            self.cleaned_data['extra_reference2'] = str(extra_reference2).strip()
+
+        return None
+
+    def validate_extra_reference3(self, extra_reference3: Optional[str]) -> Optional[str]:
+        """
+        description: An extra bit of reference text about the AddressLink
+        type: string
+        required: false
+        """
+        if bool(extra_reference3):
+            self.cleaned_data['extra_reference3'] = str(extra_reference3).strip()
         return None
 
     def validate_note(self, note: Optional[str]) -> Optional[str]:
@@ -376,4 +457,18 @@ class AddressLinkUpdateController(ControllerBase):
         if not isinstance(warrantor, bool):
             return 'membership_address_link_update_112'
         self.cleaned_data['warrantor'] = warrantor
+        return None
+
+    def validate_extra(self, extra: Optional[Dict[Any, Any]]) -> Optional[str]:
+        """
+        description: An extra key, value storage field for any extra information you wish to store on links
+        type: boolean
+        required: false
+        """
+        if extra is None:
+            return None
+
+        if not isinstance(extra, dict):
+            return 'membership_address_link_update_113'
+        self.cleaned_data['extra'] = extra
         return None

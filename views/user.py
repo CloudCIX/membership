@@ -30,6 +30,7 @@ from membership.notifications import EmailConfirmationEmail as Email
 from membership.permissions.user import Permissions
 from membership.serializers import UserSerializer
 from membership.utils import (
+    clear_user_cache,
     ldap_add_memberuid,
     ldap_create,
     ldap_delete,
@@ -155,6 +156,7 @@ class UserCollection(APIView):
         with tracer.start_span('serializing_data', child_of=request.span) as span:
             span.set_tag('num_objects', objs.count())
             data = UserSerializer(instance=objs, many=True).data
+
         return Response({'content': data, '_metadata': metadata})
 
     def post(self, request: Request) -> Response:
@@ -185,10 +187,11 @@ class UserCollection(APIView):
             if err is not None:
                 return err
 
-        # Check if this is the first User in the Member
+        # Check if this is the first User in the Member, then they are an administrator and global user
         with tracer.start_span('checking_if_first_user', child_of=request.span):
             if not User.objects.filter(member=controller.instance.member).exists():
                 controller.instance.administrator = True
+                controller.instance.global_user = True
 
         # Modify the LDAP DB, either create the user outright, or update their existing entry to add another member id
         with tracer.start_span('modifying_LDAP', child_of=request.span):
@@ -228,15 +231,14 @@ class UserCollection(APIView):
                     for notification in notifications
                 )
 
-        verify_email = False
         controller.instance.email_validated = True
         with tracer.start_span('email_verification', child_of=request.span):
             address = controller.instance.email.split('@')[1]
-            if controller.instance.member.secret is False and address != 'nomail.com':
+            if not controller.instance.member.secret and address != 'nomail.com':
                 # send email confirmation if not secret and not a nomail email
                 controller.instance.email_validated = False
-                verify_email = True
 
+        controller.instance.save()
         # Post a metric for the creation of a User object
         prepare_metrics(lambda pk: Metric('user_create', pk, {}), pk=controller.instance.pk)
 
@@ -244,7 +246,7 @@ class UserCollection(APIView):
         with tracer.start_span('serializing_data', child_of=request.span):
             data = UserSerializer(instance=controller.instance).data
 
-        if verify_email:
+        if not controller.instance.email_validated:
             with tracer.start_span('send_confirmation_email', child_of=request.span):
                 email = Email()
                 email.send(
@@ -267,7 +269,7 @@ class UserResource(APIView):
         summary: Read the details of a specified User record
 
         description: |
-            Attempt to read an User record by the given `pk`, returning a 404 if it does not exist
+            Attempt to read a User record by the given `pk`, returning a 404 if it does not exist
 
         path_params:
             pk:
@@ -321,7 +323,7 @@ class UserResource(APIView):
         summary: Update the details of a specified User record
 
         description: |
-            Attempt to update an User record by the given `pk`, returning a 404 if it does not exist.
+            Attempt to update a User record by the given `pk`, returning a 404 if it does not exist.
 
         path_params:
             pk:
@@ -388,7 +390,7 @@ class UserResource(APIView):
         email_changed = controller.instance.email != current_email
         if email_changed:
             # User's email needs to be changed in LDAP
-            with tracer.start_span('modifying_LDAP', child_of=request.span) as span:
+            with tracer.start_span('modifying_LDAP', child_of=request.span):
 
                 add_memberuid = False
                 create_new_ldap = False
@@ -413,7 +415,7 @@ class UserResource(APIView):
                 if create_new_ldap:
                     if not update_password:
                         return Http404(error_code='membership_user_update_002')
-                    with tracer.start_span('create_ldap_entry', child_of=request.span) as span:
+                    with tracer.start_span('create_ldap_entry', child_of=request.span):
                         success = ldap_create(controller.instance.email, obj.member_id, password)
                     update_password = False
 
@@ -421,18 +423,18 @@ class UserResource(APIView):
                         return Http400(error_code='membership_user_update_003')
 
                 if add_memberuid:
-                    with tracer.start_span('ldap_entry_add_memberuid', child_of=request.span) as span:
+                    with tracer.start_span('ldap_entry_add_memberuid', child_of=request.span):
                         ldap_add_memberuid(controller.instance.email, obj.member_id)
                 if remove_memberuid:
-                    with tracer.start_span('ldap_entry_remove_memberuid', child_of=request.span) as span:
+                    with tracer.start_span('ldap_entry_remove_memberuid', child_of=request.span):
                         ldap_remove_memberuid(current_email, obj.member_id)
                 if delete_current_ldap:
-                    with tracer.start_span('delete_ldap_entry', child_of=request.span) as span:
+                    with tracer.start_span('delete_ldap_entry', child_of=request.span):
                         ldap_delete(current_email)
 
         if update_password:
-            if request.user.id == obj.pk or request.user.is_super:
-                with tracer.start_span('updating_password', child_of=request.span) as span:
+            if request.user.id == obj.pk or request.user.id == 1 or obj.member.secret:
+                with tracer.start_span('updating_password', child_of=request.span):
                     if ldap_exists(controller.instance.email):
                         # A user can only change their own password or a super user can
                         ldap_update_password(controller.instance.email, password)
@@ -444,7 +446,7 @@ class UserResource(APIView):
         verify_email = False
         controller.instance.email_validated = obj.email_validated
         if send_email_confirmation or email_changed:
-            with tracer.start_span('email_verification', child_of=request.span)as span:
+            with tracer.start_span('email_verification', child_of=request.span):
                 address = controller.instance.email.split('@')[1]
                 # send email confirmation if not secret member and not a nomail.com email
                 if controller.instance.member.secret is False and address != 'nomail.com':
@@ -461,7 +463,7 @@ class UserResource(APIView):
                     notifications is not None):
                 # Clear the old notifications for the user
                 controller.instance.notifications.clear()
-                # Loop through the sent details and get the transaction type id and whether its external or not
+                # Loop through the sent details and get the transaction type id and whether it is external or not
                 Notification.objects.bulk_create(
                     Notification(
                         transaction_type_id=notification['transaction_type_id'],
@@ -481,7 +483,7 @@ class UserResource(APIView):
                 update = False
                 if request.user.id == obj.pk and email_changed:
                     # An email verification will be sent to the "current_email" if the user is updating
-                    # their own email, otherwise an administrator is changing and it will be sent to the new
+                    # their own email, otherwise an administrator is changing, and it will be sent to the new
                     # email.
                     to = current_email
                     update = True
@@ -492,6 +494,10 @@ class UserResource(APIView):
                     to=to,
                     update=update,
                 )
+        # Clear user_cache if updating self
+        if request.user.id == obj.pk:
+            with tracer.start_span('clear_user_cache', child_of=request.span):
+                clear_user_cache(obj.pk)
 
         # Generate and return the response
         return Response({'content': data})

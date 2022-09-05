@@ -14,7 +14,7 @@ Once an account has expired, a User will not be able to use any CloudCIX service
 4. Click Edit on the User/Users that need to be updated
 5. Go to Expiry Date and set for a date in the future
 6. Click Update in the top right hand corner
-7. The User is nto successfully updated and no further action is required
+7. The User is now successfully updated and no further action is required
 
 Please do not hesitate to contact us if you have any difficulty or questions. Our contact details can be found at https://www.cloudcix.com/#/support
 

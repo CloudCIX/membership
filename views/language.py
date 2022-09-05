@@ -102,7 +102,7 @@ class LanguageResource(APIView):
         summary: Read the details of a specified Language record
 
         description: |
-            Attempt to read an Language record by the given `pk`, returning a 404 if it does not exist
+            Attempt to read a Language record by the given `pk`, returning a 404 if it does not exist
 
         path_params:
             pk:

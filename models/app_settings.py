@@ -12,7 +12,7 @@ __all__ = [
 
 class AppSettings(BaseModel):
     """
-    A App Settings object for optional minio settings
+    An App Settings object for optional minio settings
     """
     minio_access_key = models.CharField(max_length=100, null=True)
     minio_secret_key = models.CharField(max_length=100, null=True)

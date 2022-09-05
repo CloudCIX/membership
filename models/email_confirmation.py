@@ -15,7 +15,6 @@ class EmailConfirmation(models.Model):
     def get_user(self):
         """Returns a user with matching user_id
 
-        :param int user_id: id of the user
         :returns: dict with user data or None
         :rtype: dict | None
         """

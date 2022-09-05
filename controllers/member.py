@@ -32,6 +32,7 @@ class MemberListController(ControllerBase):
             'id': ControllerBase.DEFAULT_NUMBER_FILTER_OPERATORS,
             'name': ControllerBase.DEFAULT_STRING_FILTER_OPERATORS,
             'api_key': ('in',),
+            'self_managed': (),
         }
 
 
