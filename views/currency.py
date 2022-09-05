@@ -121,7 +121,7 @@ class CurrencyResource(APIView):
             except Currency.DoesNotExist:
                 return Http404(error_code='membership_currency_read_001')
 
-        with tracer.start_span('retrieving_requested_object', child_of=request.span):
+        with tracer.start_span('serializing_data', child_of=request.span):
             data = CurrencySerializer(instance=obj).data
 
         return Response({'content': data})

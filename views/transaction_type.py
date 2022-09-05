@@ -99,7 +99,7 @@ class TransactionTypeResource(APIView):
         summary: Read the details of a specified Transaction Type record
 
         description: |
-            Attempt to read an Transaction Type record by the given `pk`, returning a 404 if it does not exist
+            Attempt to read a Transaction Type record by the given `pk`, returning a 404 if it does not exist
 
         path_params:
             pk:

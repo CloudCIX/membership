@@ -1,16 +1,42 @@
 # stdlib
 import crypt
+import hmac
 import logging
 from minio import Minio
 # lib
-from django.conf import settings
 import ldap3
+from django.conf import settings
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 # local
 from membership.models import AppSettings
 
 
-class MinioException(Exception):
+class MinioError(Exception):
     pass
+
+
+__all__ = [
+    'clear_user_cache',
+    'get_minio_client',
+    'ldap_add_memberuid',
+    'ldap_auth',
+    'ldap_create',
+    'ldap_delete',
+    'ldap_exists',
+    'ldap_remove_memberuid',
+    'ldap_update_password',
+]
+
+
+def clear_user_cache(user_id):
+
+    cache_key = f'user_{user_id}'
+    if cache.get(cache_key):  # pragma: no cover
+        cache.delete(cache_key)
+
+    return None
 
 
 def get_minio_client() -> Minio:
@@ -20,10 +46,10 @@ def get_minio_client() -> Minio:
     try:
         app_settings = AppSettings.objects.filter()[0]
     except IndexError:
-        raise MinioException
+        raise MinioError
 
     if app_settings.minio_url is None or app_settings.minio_access_key is None or app_settings.minio_secret_key is None:
-        raise MinioException
+        raise MinioError
 
     return Minio(
         app_settings.minio_url,
@@ -51,6 +77,37 @@ def ldap_add_memberuid(email, member_id):
         )
 
     return success
+
+
+def ldap_auth(email, password):
+    """
+    Verify sent crenditals are valid
+    """
+    conn = settings.LDAP_CONN
+
+    try:
+        validate_email(email)
+    except ValidationError:
+        # An email address was not sent
+        return False
+
+    if not conn.search(
+        search_base=settings.LDAP_DOMAIN_CONTROLLER,
+        search_filter=f'(&(uid={email}))',
+        attributes=['userPassword'],
+    ):
+        # Email not found
+        return False
+
+    crypted_password = conn.response[0]['attributes']['userPassword'][0]
+    if type(crypted_password) == bytes:  # pragma: no cover
+        # Uncovered because I'm not 100% sure when this happens but I've seen it happen so I know it does
+        crypted_password = crypted_password.decode()
+    if not hmac.compare_digest(crypted_password, crypt.crypt(password, crypted_password)):
+        # Incorrect password sent
+        return False
+
+    return True
 
 
 def ldap_create(email, member_id, password):
@@ -102,12 +159,12 @@ def ldap_exists(email):
     """
     conn = settings.LDAP_CONN
 
-    ldap_exists = conn.search(
+    exists = conn.search(
         search_base=settings.LDAP_DOMAIN_CONTROLLER,
         search_filter=f'(&(uid={email}))',
     )
 
-    return ldap_exists
+    return exists
 
 
 def ldap_remove_memberuid(email, member_id):

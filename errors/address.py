@@ -125,7 +125,7 @@ membership_address_update_129 = (
     'self-managed.'
 )
 membership_address_update_201 = (
-    'You do not have permission to execute this method. Only Member 1 administrator\'s can change the role of an '
+    "You do not have permission to execute this method. Only Member 1 administrator's can change the role of an "
     'Address.'
 )
 membership_address_update_202 = 'You do not have permission to make this request. Your Member must be self-managed.'

@@ -3,16 +3,17 @@ import atexit
 import os
 import ldap3
 
-PGSQLAPI_PASSWORD = os.getenv('PGSQLAPI_PASSWORD', 'pw')
-PGSQLAPI_USER = os.getenv('PGSQLAPI_USER', 'postgres')
+PGSQLAPI_PASSWORD = os.getenv('PGSQL_PASSWORD', 'pw')
+PGSQLAPI_USER = os.getenv('PGSQL_USER', 'postgres')
 PGSQLAPI_HOST = os.getenv('PGSQLAPI_HOST', 'pgsqlapi')
 POD_NAME = os.getenv('POD_NAME', 'pod')
 ORGANIZATION_URL = os.getenv('ORGANIZATION_URL', 'example.com')
 LDAP_DOMAIN_CONTROLLER = os.getenv('MEMBERSHIPLDAP_DC', 'dc=example,dc=com')
 LDAP_PASSWORD = os.getenv('MEMBERSHIPLDAP_PASSWORD', 'pw')
 LDAP_URL = os.getenv('MEMBERSHIPLDAP_URL', 'membershipldap')
-COP_PAM_NAME = os.getenv('COP_PAM_NAME', 'pam')
-COP_PAM_ORGANIZATION_URL = os.getenv('COP_PAM_ORGANIZATION_URL', 'example.com')
+PAM_NAME = os.getenv('PAM_NAME', 'pam')
+PAM_ORGANIZATION_URL = os.getenv('PAM_ORGANIZATION_URL', 'example.com')
+PORTAL_NAME = os.getenv('PORTAL_NAME', 'saas')
 
 ALLOWED_HOSTS = (
     f'membership.{POD_NAME}.{ORGANIZATION_URL}',
@@ -52,7 +53,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
 
 DEBUG = False
 
-EMAIL_CONFIRMATION_URL = f'cop.{POD_NAME}.{ORGANIZATION_URL}/auth/email-confirmation/'
+EMAIL_CONFIRMATION_URL = f'https://{PORTAL_NAME}.{ORGANIZATION_URL}/auth/email-confirmation/'
 
 INSTALLED_APPS = [
     'membership',
@@ -83,7 +84,8 @@ PRODUCTION_DEPLOYMENT = os.getenv('PRODUCTION_DEPLOYMENT', 'true').lower() == 't
 if not PRODUCTION_DEPLOYMENT:
     DEVELOPER_EMAILS = [os.getenv('DEVELOPER_EMAILS', 'developers@example.com')]
 
-TESTING = False
+# Default is False
+TESTING = os.getenv('TESTING', 'false').lower() == 'true'
 
 TOKEN_VALID_HOURS = 2
 
@@ -96,7 +98,7 @@ APPLICATION_NAME = os.getenv('APPLICATION_NAME', f'{POD_NAME}_{ORG}_membership')
 
 LOGSTASH_ENABLE = os.getenv('LOGSTASH_ENABLE', 'false').lower() == 'true'
 
-if f'{COP_PAM_NAME}.{COP_PAM_ORGANIZATION_URL}' == 'support.cloudcix.com' or LOGSTASH_ENABLE:
+if f'{PAM_NAME}.{PAM_ORGANIZATION_URL}' == 'support.cloudcix.com' or LOGSTASH_ENABLE:
     CLOUDCIX_INFLUX_TAGS = {
         'service_name': APPLICATION_NAME,
     }
@@ -106,7 +108,10 @@ if f'{COP_PAM_NAME}.{COP_PAM_ORGANIZATION_URL}' == 'support.cloudcix.com' or LOG
         'logging': True,
         'sampler': {
             'type': 'probabilistic',
-            'param': 0.1,
+            'param': 1,
+        },
+        'local_agent': {
+            'reporting_host': 'jaeger-agent',
         },
     }
     RAVEN_CONFIG = {

@@ -19,7 +19,7 @@ class Permissions:
         - User is a super user
         """
         # Requesting user is not a super user
-        if not request.user.is_super:
+        if request.user.id != 1:
             return Http403(error_code='membership_app_settings_create_201')
 
         return None
@@ -31,7 +31,7 @@ class Permissions:
         - User is a super user
         """
         # Requesting user is not a super user
-        if not request.user.is_super:
+        if request.user.id != 1:
             return Http403(error_code='membership_app_settings_read_201')
 
         return None
@@ -43,7 +43,7 @@ class Permissions:
         - User is a super user
         """
         # Requesting user is not a super user
-        if not request.user.is_super:
+        if request.user.id != 1:
             return Http403(error_code='membership_app_settings_update_201')
 
         return None
@@ -55,7 +55,7 @@ class Permissions:
         - User is a super user
         """
         # Requesting user is not a super user
-        if not request.user.is_super:
+        if request.user.id != 1:
             return Http403(error_code='membership_app_settings_delete_201')
 
         return None

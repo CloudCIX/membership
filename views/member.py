@@ -217,7 +217,7 @@ class MemberResource(APIView):
         summary: Update the details of a specified Member record
 
         description: |
-            Attempt to update an Member record by the given `pk`, returning a 404 if it does not exist.
+            Attempt to update a Member record by the given `pk`, returning a 404 if it does not exist.
 
         path_params:
             pk:

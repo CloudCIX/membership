@@ -29,7 +29,7 @@ class Permissions:
         - The requesting User's Member is linked to the specified Member TODO: Remove
         """
         # Superuser User Allowance
-        if request.user.is_super:  # pragma: no cover
+        if request.user.id == 1:  # pragma: no cover
             return None
 
         # The requesting User's Member is linked to the specified Member - TODO: Remove
@@ -53,7 +53,7 @@ class Permissions:
         - The requesting User's Member is self-managed and the specified Member is a non self-managed partner
         """
         # Superuser User Allowance
-        if request.user.is_super:  # pragma: no cover
+        if request.user.id == 1:  # pragma: no cover
             return None
 
         # The specified Member is self-managed and the requesting User is an administrator of that Member

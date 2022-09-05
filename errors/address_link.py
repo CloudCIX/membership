@@ -21,15 +21,17 @@ membership_address_link_create_105 = (
     'or None'
 )
 membership_address_link_create_106 = 'The "client" parameter is invalid. "client" must be a boolean.'
-membership_address_link_create_107 = 'The "compute" parameter is invalid. "compute" must be a boolean.'
+membership_address_link_create_107 = 'The "cloud_customer" parameter is invalid. "cloud_customer" must be a boolean.'
 membership_address_link_create_108 = (
-    'The "compute" parameter is invalid. As your Address is not a cloud_region you cannot have a compute relationship '
-    'with a partner Address. For more information on how to become a cloud_region please email sales@cloudcix.com.'
+    'The "cloud_customer" parameter is invalid. As your Address is not a cloud_region you cannot have a '
+    'cloud_customer relationship with a partner Address. For more information on how to become a cloud_region '
+    'please email sales@cloudcix.com.'
 )
 membership_address_link_create_109 = 'The "customer" parameter is invalid. "customer" must be a boolean.'
 membership_address_link_create_110 = 'The "service_centre" parameter is invalid. "service_centre" must be a boolean.'
 membership_address_link_create_111 = 'The "supplier" parameter is invalid. "supplier" must be a boolean.'
 membership_address_link_create_112 = 'The "warrantor" parameter is invalid. "warrantor" must be a boolean.'
+membership_address_link_create_113 = 'The "extra" parameter is invalid. "extra" must be a dictionary.'
 membership_address_link_create_201 = (
     'You do not have permission to execute this method. Your Member is not self-managed.'
 )
@@ -63,15 +65,17 @@ membership_address_link_update_105 = (
     'or None'
 )
 membership_address_link_update_106 = 'The "client" parameter is invalid. "client" must be a boolean.'
-membership_address_link_update_107 = 'The "compute" parameter is invalid. "compute" must be a boolean.'
+membership_address_link_update_107 = 'The "cloud_customer" parameter is invalid. "cloud_customer" must be a boolean.'
 membership_address_link_update_108 = (
-    'The "compute" parameter is invalid. As your Address is not a cloud_region you cannot have a compute relationship '
-    'with a partner Address. For more information on how to become a cloud_region please email sales@cloudcix.com.'
+    'The "cloud_customer" parameter is invalid. As your Address is not a cloud_region you cannot have a '
+    'cloud_customer relationship with a partner Address. For more information on how to become a cloud_region '
+    'please email sales@cloudcix.com.'
 )
 membership_address_link_update_109 = 'The "consumer" parameter is invalid. "consumer" must be a boolean.'
 membership_address_link_update_110 = 'The "service_centre" parameter is invalid. "service_centre" must be a boolean.'
 membership_address_link_update_111 = 'The "supplier" parameter is invalid. "supplier" must be a boolean.'
 membership_address_link_update_112 = 'The "warrantor" parameter is invalid. "warrantor" must be a boolean.'
+membership_address_link_update_113 = 'The "extra" parameter is invalid. "extra" must be a dictionary.'
 membership_address_link_update_201 = (
     'You do not have permission to execute this method. Your Member is not self-managed.'
 )
